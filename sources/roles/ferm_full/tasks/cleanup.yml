@@ -1,0 +1,26 @@
+- name: "list all ferm rules"
+  command: ls -A1 /etc/ferm/{{item}}.d
+  register: all_ferm_rules
+  with_items:
+    - input
+    - output
+    - forward
+  failed_when: all_ferm_rules.rc not in [0, 2]
+  always_run: True
+  changed_when: False
+
+- name: "remove/erase/delete /!\\ unsued ferm rules"
+  file:
+    dest: '/etc/ferm/{{item}}'
+    state: absent
+  with_items: >
+    {%- set file_to_delete = [] -%}
+    {%- for dir in all_ferm_rules.results|default([]) -%}
+        {%- for file in
+                dir.stdout_lines|difference(
+                hostvars[inventory_hostname]['ferm_' ~ dir.item]) -%}
+            {%- set _ = file_to_delete.append(
+                    dir.item ~ '.d/' ~ file ) -%}
+        {%- endfor -%}
+    {%- endfor -%}
+    {{ file_to_delete }}

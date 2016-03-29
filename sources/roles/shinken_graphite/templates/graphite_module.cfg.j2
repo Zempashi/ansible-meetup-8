@@ -1,0 +1,7 @@
+{%- set graphite = groups._graphite_entry_point[0] -%}
+define module {
+    module_name     graphite
+    module_type     graphite_perfdata
+    host            {{ graphite }}
+    port            {{ hostvars[graphite].graphite_port }}
+}

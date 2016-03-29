@@ -1,0 +1,10 @@
+conntrack_hashsize: 16384
+tcp_timeout_established: 86400
+conntrack_max: 131072
+
+ferm_manage_ssh: True
+is_last: True
+
+open_port: []
+tcp_open_port: []
+udp_open_port: []

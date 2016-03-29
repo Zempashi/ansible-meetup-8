@@ -1,0 +1,8 @@
+galaxy_info:
+author: Julien Girardin
+description: Ansible role to install graphite on Debian (Wheezy/jessie)
+min_ansible_version: 1.7
+categories:
+- monitoring
+- monitoring:metrology
+dependencies: []

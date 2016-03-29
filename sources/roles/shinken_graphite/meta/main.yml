@@ -1,0 +1,9 @@
+galaxy_info:
+author: Julien Girardin
+description: Role to make shinken and graphite work together
+min_ansible_version: 1.7
+categories:
+ - monitoring
+ - monitoring:alerting
+dependencies:
+ - shinken_common

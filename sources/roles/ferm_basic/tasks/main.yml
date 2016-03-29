@@ -1,0 +1,9 @@
+- name: "Open tcp port in firewall"
+  lineinfile:
+    dest: /etc/ferm/ferm.conf
+    regexp: "^@def \$TCP_PORTS = \("
+    line: "@def $TCP_PORTS = ({{open_port|unique|join(' ')}});"
+  notify:
+    - restart ferm
+  tags:
+    - ferm

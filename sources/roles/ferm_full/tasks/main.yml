@@ -1,0 +1,12 @@
+- include: install.yml
+  tags: ferm
+
+- include: basic_open_ports.yml
+  tags: ferm
+
+- include: ports_dict.yml
+  tags: ferm
+
+- include: cleanup.yml
+  when: is_last|bool == True
+  tags: ferm

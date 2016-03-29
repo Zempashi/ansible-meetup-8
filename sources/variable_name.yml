@@ -1,0 +1,8 @@
+- hosts: localhost
+  vars:
+    key: foo
+    value: ['a', 'list',]
+  tasks:
+    - set_fact:
+        '{{ key }}': '{{value}}'
+    - debug: var=foo

@@ -1,0 +1,2 @@
+- name: 'restart ferm'
+  service: name=ferm state=restarted

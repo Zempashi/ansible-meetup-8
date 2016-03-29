@@ -1,0 +1,8 @@
+galaxy_info:
+author: Julien Girardin
+description: Open port in ferm configuration
+min_ansible_version: 1.7
+categories:
+- monitoring
+- monitoring:alerting
+dependencies: []

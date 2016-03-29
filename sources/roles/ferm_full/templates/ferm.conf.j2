@@ -1,0 +1,35 @@
+# vim:set ts=2 sw=2 ft=sh et:
+
+@hook pre 'modprobe nf_conntrack hashsize={{ conntrack_hashsize }}';
+@hook pre 'echo {{ conntrack_hashsize }} > /sys/module/nf_conntrack/parameters/hashsize';
+@hook post 'echo {{ tcp_timeout_established }} > /proc/sys/net/ipv4/netfilter/ip_conntrack_tcp_timeout_established';
+@hook post 'echo {{ conntrack_max }} > /proc/sys/net/netfilter/nf_conntrack_max';
+
+# IPv4 stack
+domain (ip ip6) {
+  table filter {
+    chain INPUT {
+      policy DROP;
+
+      # allow established and related connections
+      mod conntrack ctstate INVALID DROP;
+      mod conntrack ctstate (ESTABLISHED RELATED) ACCEPT;
+
+      # allow local packets
+      interface lo ACCEPT;
+
+      # respond to ping
+      proto icmp ACCEPT;
+
+      @include 'input.d/';
+    }
+    chain OUTPUT {
+      policy ACCEPT;
+      @include 'output.d/';
+    }
+    chain FORWARD {
+      policy DROP;
+      @include 'forward.d/';
+    }
+  }
+}

@@ -1,0 +1,19 @@
+- name: "Open ports base on ports_dict var"
+  copy:
+    content: |-
+        mod conntrack ctstate NEW ACCEPT {
+            proto tcp dport (
+            {{- item.value|join( " " ) }});
+        }
+    dest: /etc/ferm/input.d/{{ item.key }}
+  with_dict: ports_dict
+  notify:
+    - restart ferm
+
+- name: "Register files in input"
+  set_fact:
+    ferm_input: >-
+      {{ ferm_input + ports_dict.keys() }}
+
+- include: 'cleanup_input.yml'
+  when: is_last|bool == True

@@ -1,3 +1,9 @@
+## vim editor
+*.swp
+
+## Ansible 2 retry-files
+*.retry
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof

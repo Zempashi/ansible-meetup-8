@@ -1,0 +1,20 @@
+- name: "Install ferm deb package"
+  apt:
+    name: ferm
+    state: present
+
+- name: "Create directories"
+  file:
+    path: /etc/ferm/{{item}}.d/
+    state: directory
+  with_items:
+    - input
+    - output
+    - forward
+
+- name: "Install main file"
+  template:
+    src: ferm.conf.j2
+    dest: /etc/ferm/ferm.conf
+  notify:
+  - restart ferm

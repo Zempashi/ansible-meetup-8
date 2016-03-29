@@ -1,0 +1,41 @@
+---
+- assert:
+    that:
+      - "ansible_os_family == 'Debian'"
+      - "ansible_distribution_release in ['wheezy']"
+
+- name: 'install shinken'
+  include: shinken_repo_wheezy.yml
+  when: ansible_distribution_release == 'wheezy'
+
+- name: 'install shinken (2.x) package'
+  apt: name={{item}} state=installed
+  with_items:
+    - shinken-common
+    - shinken-mod-pickle-retention-file-generic
+    - nagios-plugins-basic
+    - nagios-nrpe-plugin
+
+- name: 'copy conf-file'
+  file:
+    src: '{{item}}'
+    dest: /etc/shinken/modules/{{item}}
+  with_items:
+    - retention-pickle-arbiter.cfg
+    - retention-pickle-broker.cfg
+    - retention-pickle-scheduler.cfg
+
+- name: 'Shinken localhost.cfg (fix swap probe)'
+  template:
+    src: localhost.cfg.j2
+    dest: /etc/shinken/hosts/localhost.cfg
+  notify:
+    - restart shinken
+
+- name: 'load default var'
+  set_fact:
+    shinken_plugins: "{{shinken_plugins|default(['webui', 'pickle-retention-broker'])}}"
+    shinken_keep_mod_files: >
+        {{ shinken_keep_mod_files|default(['retention-pickle-arbiter.cfg',
+                                           'retention-pickle-broker.cfg',
+                                           'retention-pickle-scheduler.cfg'])}}

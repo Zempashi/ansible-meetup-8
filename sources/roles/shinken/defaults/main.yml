@@ -1,0 +1,4 @@
+---
+shinken_node: ['broker', 'arbiter']
+shinken_webui: true
+shinken_webui_open_directly: true

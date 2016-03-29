@@ -1,0 +1,13 @@
+- hosts: graphite
+  roles:
+    - role: "graphite"
+
+- hosts: shinken
+  roles:
+#   - role: "shinken_common"
+    - role: "shinken_graphite"
+    - role: "shinken"
+
+- hosts: graphite:shinken
+  roles:
+    - role: "ferm_full"

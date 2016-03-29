@@ -1,0 +1,13 @@
+- name: "List all ferm rules"
+  command: ls -A1 /etc/ferm/input.d
+  register: input_rules
+  failed_when: input_rules.rc not in [0, 2]
+  always_run: True
+  changed_when: False
+
+- name: "/!\\ Remove /!\\ unsued ferm rules"
+  file:
+    dest: "/etc/ferm/input.d/{{item}}'"
+    state: absent
+  with_items: >-
+    {{ input_rules.stdout_lines |difference(ferm_input) }}

@@ -1,0 +1,17 @@
+
+- name: 'install the graphite module for shinken'
+  apt: name=shinken-mod-graphite state=installed
+
+- name: 'graphite module in shinken'
+  template:
+    src: graphite_module.cfg.j2
+    dest: /etc/shinken/modules/graphite.cfg
+  notify:
+    - restart shinken
+
+- name: 'load graphite plugin'
+  set_fact:
+    shinken_plugins: "{{(shinken_plugins + ['graphite'])|unique}}"
+    shinken_keep_mod_files: >
+        {{(shinken_keep_mod_files +
+            ['graphite.cfg', 'logstore_sqlite.cfg'])|unique}}

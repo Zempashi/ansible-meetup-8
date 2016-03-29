@@ -1,0 +1,25 @@
+- name: "Open ssh access"
+  template:
+    src: ssh.conf.j2
+    dest: /etc/ferm/input.d/01-ssh.conf
+  when: ferm_manage_ssh|bool
+  notify:
+    - restart ferm
+
+- name: "Remember ssh management"
+  set_fact:
+    ferm_manage_ssh: '{{ ferm_manage_ssh }}'
+
+- name: "Open port"
+  template:
+    src: basic_open_port.conf.j2
+    dest: /etc/ferm/input.d/02-basic_open_port.conf
+  when: is_last|bool
+  notify:
+    - restart ferm
+
+- name: "register file to not be deleted"
+  set_fact:
+     ferm_input: '{{ ferm_input|default([]) +
+       ["02-basic_open_port.conf",
+        "01-ssh.conf"] }}'

@@ -1,0 +1,6 @@
+
+mod conntrack ctstate NEW ACCEPT {
+    # local services
+    proto tcp dport ({{ (open_port+ tcp_open_port)|unique|join( ' ' ) }});
+    proto udp dport ({{ udp_open_port|unique|join(' ') }} );
+}

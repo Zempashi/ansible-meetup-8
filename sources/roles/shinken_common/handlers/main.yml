@@ -1,0 +1,5 @@
+- name: 'reload shinken'
+  service: name=shinken state=reloaded
+
+- name: 'restart shinken'
+  service: name=shinken state=restarted

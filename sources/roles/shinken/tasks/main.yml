@@ -1,0 +1,21 @@
+---
+### WebUI ###
+
+- name: 'configure webui'
+  include: webui.yml
+  when: shinken_webui|bool
+
+- name: 'unload webui module if not needed'
+  set_fact:
+    shinken_plugins: "{{shinken_plugins|difference(['webui'])}}"
+  when: not shinken_webui|bool
+
+### Broker ###
+
+- name: 'configure broker'
+  include: broker.yml
+  when: >
+    'broker' in shinken_node
+
+- name: 'start shinken'
+  service: name=shinken state=started

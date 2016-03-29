@@ -1,0 +1,50 @@
+
+- name: 'set correct pinning for wheezy'
+  copy:
+    content: |
+      Package: *
+      Pin: release n=wheezy
+      Pin-Priority: 800
+    dest: /etc/apt/preferences.d/wheezy
+  when: ansible_distribution_release == 'wheezy'
+
+- name: 'setup jessie repository'
+  apt_repository:
+    repo: 'deb http://ftp.debian.org/debian/ jessie main'
+    update_cache: yes
+  when: ansible_distribution_release == 'wheezy'
+
+- name: 'setup jessie repository'
+  apt_repository:
+    repo: 'deb http://ftp.debian.org/debian/ wheezy-backports main'
+    update_cache: yes
+  when: ansible_distribution_release == 'wheezy'
+
+- name: 'set correct pinning for graphite'
+  copy:
+    content: |
+      Package: python-django-tagging
+      Pin: release n=jessie
+      Pin-Priority: 950
+
+      Package: python-django*
+      Pin: release n=wheezy-backports
+      Pin-priority: 950
+
+    dest: /etc/apt/preferences.d/graphite
+  when: ansible_distribution_release == 'wheezy'
+
+- name: 'install graphite package'
+  apt: name={{item}} state=installed
+  with_items:
+    - graphite-web
+    - graphite-carbon
+
+- name: 'enable carbon cache'
+  lineinfile:
+    dest: /etc/default/graphite-carbon
+    regexp: CARBON_CACHE_ENABLED=
+    line: CARBON_CACHE_ENABLED=true
+
+- name: 'start graphite-carbon'
+  service: name=carbon-cache state=started

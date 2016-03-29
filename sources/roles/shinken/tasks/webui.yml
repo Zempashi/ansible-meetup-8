@@ -1,0 +1,30 @@
+---
+- name: 'install webui shinken module'
+  apt: name={{item}} state=installed
+  with_items:
+    - shinken-mod-webui
+    - shinken
+
+- name: 'install config file'
+  copy:
+    src: webui/{{item}}
+    dest: /etc/shinken/modules/{{item}}
+  with_items:
+    - sqlitedb.cfg
+    - auth_cfg_password.cfg
+    - webui.cfg
+
+- name: 'set file list for webui modules'
+  set_fact:
+    shinken_keep_mod_files: >
+        {{(shinken_keep_mod_files +
+            ['webui.cfg', 'sqlitedb.cfg',
+             'auth_cfg_password.cfg'])
+            |unique}}
+
+- name: 'Export Shinken web UI ports'
+  set_fact:
+    open_port: "{{open_port|default([]) + [7767]}}"
+  when: shinken_webui_open_directly
+  tags:
+   - ferm

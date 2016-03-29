@@ -1,0 +1,82 @@
+
+- name: "install graphite package"
+  include: graphite_package.yml
+
+- name: "setup a more secret SECRET_KEY"
+  lineinfile:
+    dest: /etc/graphite/local_settings.py
+    line: >
+        SECRET_KEY = "{{lookup( 'password', inventory_dir + '/' + inventory_hostname + '.graphite_django.secret length=50')}}"
+    regexp: ^#?\s*SECRET_KEY\s*=\s*(?P<quote>['"])([^'"]*)(?P=quote)\s*$
+
+- name: "make django table"
+  command: graphite-manage migrate
+  args:
+    creates: /var/lib/graphite/graphite.db
+
+- name: "set correct permission on database"
+  file:
+    path: /var/lib/graphite/graphite.db
+    group: _graphite
+    owner: _graphite
+    state: file
+
+- name: "install apache 2"
+  apt: name={{item}}  state=installed
+  with_items:
+    - apache2
+    - libapache2-mod-wsgi
+
+- name: "active wsgi"
+  apache2_module: state=present name=wsgi
+  notify:
+    - restart apache
+
+- name: "install vhost"
+  template:
+    src: graphite.wsgi.j2
+    dest: /etc/apache2/sites-available/graphite.conf
+  notify:
+    - reload apache
+
+- name: "enable default vhost"
+  command: a2ensite default
+  args:
+    creates: /etc/apache2/sites-enabled/000-default
+  notify:
+    - reload apache
+
+- name: "enable graphite vhost"
+  command: a2ensite graphite.conf
+  args:
+    creates: /etc/apache2/sites-enabled/graphite.conf
+  notify:
+    - reload apache
+
+- name: "start apache"
+  service: name=apache2 state=started
+
+- name: "Expose graphite ports"
+  set_fact:
+    open_port: "{{open_port|default([]) + [2003, 80]}}"
+  tags:
+    - ferm
+
+- name: "Expose graphite ports"
+  set_fact:
+    ports_dict: >-
+      {%- set _ = ports_dict.update(
+        { 'graphite.conf': [2003, 80]}) -%}
+      {{ports_dict}}
+# ansible 2: ports_dict |combine({'graphite.conf': [2003, 80]})
+  tags:
+    - ferm
+
+- name: "Expose graphite entry-point"
+  add_host:
+    name: "{{ item }}"
+    groups: _graphite_entry_point
+    graphite_port: 2003
+  with_items: "{{ play_hosts }}"
+  tags:
+    - shinken

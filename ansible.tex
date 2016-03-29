@@ -1,0 +1,388 @@
+\PassOptionsToPackage{dvipsnames}{xcolor}
+\documentclass{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+%\usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{arrows,calc,intersections,through,decorations.pathmorphing,backgrounds,positioning,fit}
+\usepackage[T1]{fontenc}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{listings}
+\usepackage{minted}
+\usepackage{ulem}
+\usepackage{hyperref}
+\usetheme{Madrid}
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+      \frametitle{Syllabus}
+      {\scriptsize\tableofcontents[currentsection,hideothersubsections]
+      }
+    \end{frame}
+}
+
+\fvset{commandchars=\\\{\}}
+
+\title{Ansible \textit{set\_fact} \& \textit{add\_host}}
+\author{Julien Girardin}
+\date{\today}
+
+\titlegraphic{
+    \includegraphics[width=0.06\textwidth]{images/ansible_badge.png}
+    \hspace{0.1cm}
+    \includegraphics[width=0.3\textwidth]{images/ansible.png}
+}
+
+\begin{document}
+
+\maketitle{}
+
+\begin{frame}
+    \begin{exampleblock}{Versions disclaimer}
+        Should work on ansible >= 1.9
+
+        (Special mentions for ansible 2.0 only)
+    \end{exampleblock}
+\end{frame}
+
+\section{Server scope variable}
+
+\begin{frame}[fragile]
+\frametitle{Example}
+    \begin{exampleblock}{Example featuring \textit{set\_fact}}
+        \begin{minted}{yaml}
+- name: "A task with set_fact"
+  set_fact: ga=foo
+  args:
+    bu: bar
+    zo: baz|bool
+    meu: >- # add "-" to strip the \n at the end
+      {{ complex_computation_in_jinja|list }}
+        \end{minted}
+    \end{exampleblock}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \begin{columns}
+    \column{0.4\textwidth}
+        \begin{block}{site\_1.yml}
+        \footnotesize{
+            \inputminted[firstline=1, lastline=2]
+                        {yaml}{sources/site_1.yml}
+            \inputminted[firstline=3, lastline=3,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_1.yml}
+            \inputminted[firstline=4, lastline=10]
+                        {yaml}{sources/site_1.yml}
+            \inputminted[firstline=11, lastline=11,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_1.yml}
+        }
+        \end{block}
+
+    \column{0.55\textwidth}
+        \vbox to .7\textheight{
+        \footnotesize{
+            \inputminted[firstline=58, lastline=60,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/graphite/tasks/main.yml}
+            \vfill
+            \inputminted[firstline=1, lastline=5,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/ferm_basic/tasks/main.yml}
+        }
+        }
+    \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{columns}
+    \column{0.4\textwidth}
+    \begin{alertblock}{site\_2.yml}
+        \footnotesize{
+            \inputminted{yaml}{sources/site_2.yml}
+        }
+    \end{alertblock}
+    \column{0.55\textwidth}
+        \scriptsize{
+        \begin{Verbatim}[label={Ansible output 1}]
+TASK [graphite | Expose graphite ports] *******
+\textcolor{Green}{ok: [graphite]}
+\textcolor{Green}{ok: [shinken]}
+
+TASK [ferm_basic | Open tcp port in firewall] *
+\textcolor{Orange}{changed: [graphite]}
+\textcolor{Orange}{changed: [shinken]}
+
+TASK [shinken | Export Shinken web UI ports] **
+\textcolor{Green}{ok: [graphite]}
+\textcolor{Green}{ok: [shinken]}
+
+TASK [ferm_basic | Open tcp port in firewall] *
+\textcolor{Orange}{changed: [graphite]}
+\textcolor{Orange}{changed: [shinken]}
+        \end{Verbatim}
+        }
+\end{columns}
+\vfill
+\begin{center}
+    \visible<2->{
+        $\Rightarrow$ First: remove the shinken ports. Then: add it again.
+    }
+\end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{columns}
+    \column{0.4\textwidth}
+        \begin{block}{site\_3.yml}
+        \footnotesize{
+            \inputminted[firstline=1, lastline=2]
+                        {yaml}{sources/site_3.yml}
+            \inputminted[firstline=3, lastline=3,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_3.yml}
+            \inputminted[firstline=4, lastline=6]
+                        {yaml}{sources/site_3.yml}
+            \inputminted[firstline=7, lastline=7,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_3.yml}
+            \inputminted[firstline=8]
+                        {yaml}{sources/site_3.yml}
+        }
+        \end{block}
+    \column{0.55\textwidth}
+        \vbox to .7\textheight{
+        \scriptsize{
+            \inputminted[firstline=64, lastline=70,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/graphite/tasks/main.yml}
+            \vfill
+            \inputminted[firstline=1, lastline=9,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/ferm_full/tasks/ports_dict.yml}
+        }
+        }
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{columns}
+    \column{0.4\textwidth}
+        \begin{block}{site\_4.yml}
+        \footnotesize{
+            \inputminted[firstline=1, lastline=6]
+                        {yaml}{sources/site_4.yml}
+            \inputminted[firstline=7, lastline=8,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_4.yml}
+            \inputminted[firstline=9]
+                        {yaml}{sources/site_4.yml}
+        }
+        \end{block}
+    \column{0.55\textwidth}
+        \vbox to .9\textheight{
+        \scriptsize{
+            \inputminted[firstline=13,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/ferm_full/tasks/ports_dict.yml}
+            \vfill
+            \textit{cleanup\_input.yml:}
+            \inputminted[breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/ferm_full/tasks/cleanup_input.yml}
+        }
+        }
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+    \begin{alertblock}{Warning}
+        A missing tag \textit{ferm} or \textit{firewall}
+        may un-expose a port and remove it from firewall
+    \end{alertblock}
+
+\end{frame}
+
+\section{Global scope variable}
+%\subsection{Read vars from other servers}
+
+
+\begin{frame}[fragile]
+\frametitle{Example}
+    \begin{exampleblock}{The classical but usefull \textit{hostvars}}
+        \footnotesize{
+        \begin{minted}[breaklines]{yaml}
+- hosts: master
+  tasks:
+    - name: "Get content from master"
+      slurp:
+        path: /root/.ssh/id_rsa.pub
+      register: sshkey
+      delegate_to: "{{ groups.master[0] }}"
+      run_once: True
+
+- hosts: slaves
+  tasks:
+    - name: "Add sshpub key from the master"
+      authorized_keys:
+        key: "{{ hostvars[groups.master[0]].sshkey.content|b64decode }}"
+        user: root
+        \end{minted}
+        }
+    \end{exampleblock}
+\end{frame}
+
+%\subsection{add\_host}
+
+\begin{frame}[fragile]
+\begin{block}{Global vars}
+How to pass a variable globally ?
+
+(ie: whatever the server who set the var and whatever the server who read the var)
+\end{block}
+
+\visible<2->{
+    \begin{center}
+    $\Rightarrow$ \textbf{\textit{Groups}}
+    \end{center}
+    }
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Example}
+    \begin{exampleblock}{Example featuring \textit{add\_host}}
+        \begin{minted}{yaml}
+- name: "Example with add_hosts"
+  add_host:
+    name: "{{ groups.slaves[0] }}"
+    groups: leader
+    foo: bar
+        \end{minted}
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Common pitfall}
+    \textit{add\_host} litteraly breaks the parallelism of ansible.
+
+    It seems to have: \fbox{\lstinline{run_once: True}} always enabled.
+    \begin{columns}
+    \column{0.5\textwidth}
+        \begin{alertblock}{Doesn't work as expected}
+            \footnotesize{
+            \begin{minted}{yaml}
+- name: "Add hosts to shinken"
+  add_host:
+    name: "{{ inventory_hostname }}"
+    groups: shinken
+            \end{minted}
+            }
+        \end{alertblock}
+    \column{0.45\textwidth}
+%        \visible<2->{
+        \begin{minipage}{\textwidth}
+        \begin{exampleblock}{Thing you might want}
+            \footnotesize{
+            \begin{minted}{yaml}
+- name: "Add hosts to shinken"
+  add_host:
+    name: "{{ item }}"
+    groups: shinken
+  with_items: "{{ play_hosts }}"
+            \end{minted}
+            }
+        \end{exampleblock}
+        \end{minipage}
+%        }
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+\begin{columns}
+    \column{0.45\textwidth}
+        \begin{block}{site\_5.yml}
+        \footnotesize{
+            \inputminted[firstline=1, lastline=2]
+                        {yaml}{sources/site_5.yml}
+            \inputminted[firstline=3, lastline=3,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_5.yml}
+            \inputminted[firstline=4, lastline=7]
+                        {yaml}{sources/site_5.yml}
+            \inputminted[firstline=8, lastline=8,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/site_5.yml}
+            \inputminted[firstline=9]
+                        {yaml}{sources/site_5.yml}
+        }
+        \end{block}
+    \column{0.5\textwidth}
+        \vbox to .7\textheight{
+        \scriptsize{
+            \inputminted[firstline=74, lastline=79,
+                        breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/graphite/tasks/main.yml}
+            \vfill
+            \textit{\tiny{
+                shinken\_graphite/templates/graphite\_module.cfg.j2}}
+            \inputminted[breaklines,
+                        frame=single,
+                        framesep=0pt]
+                        {yaml}{sources/roles/shinken_graphite/templates/graphite_module.cfg.j2}
+        }
+        }
+\end{columns}
+\end{frame}
+
+\section{Fun facts (short)}
+
+\begin{frame}[fragile]
+    \frametitle{Set var on another host}
+    \begin{block}{Since ansible $\sim$ 1.9}
+    \begin{minted}{yaml}
+- name:
+  add_host:
+    name: "another.server"
+    group: all
+    foo: bar
+    \end{minted}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+    \frametitle{Variable pointer}
+    \begin{block}{Since ansible 2.0}
+        \inputminted[firstline=1]{yaml}{sources/variable_name.yml}
+    \end{block}
+\end{frame}
+
+
+
+\end{document}

@@ -1,0 +1,16 @@
+- hosts: monitoring
+  roles:
+    - role: "graphite"
+
+- hosts: monitoring
+  roles:
+    - role: "ferm_full"
+      is_last: False
+
+- hosts: monitoring
+  roles:
+    - role: "shinken"
+
+- hosts: monitoring
+  roles:
+    - role: "ferm_full"
